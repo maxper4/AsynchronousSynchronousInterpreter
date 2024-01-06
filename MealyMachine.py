@@ -133,24 +133,31 @@ sampler = MealyMachine({}, sampler_fct, sampler_fct,
 compose1 = additioner.compose(pre)
 compose2 = additioner.compose(sampler)
 
-print(additioner.run_sequence([{"sum": 1}, {"sum": 2}, {"sum": 1}, {"sum": 2}, {"sum": 1}]))
-print(sampler.run_sequence([{"i": {"val": 1}, "b": 1}, {"i": {"val": 2}, "b": 0}, {"i": {"val": 3}, "b": 1}, {"i": {"val": 4}, "b": 0}, {"i": {"val": 5}, "b": 1}]))
-print(pre.run_sequence([{"i": 1}, {"i": 2}, {"i": 3}, {"i": 4}, {"i": 5}]))
-print(compose1.run_sequence([{"sum": 1, "i": 1}, {"sum": 2, "i": 2}, {"sum": 1, "i": 3}, {"sum": 2, "i": 4}, {"sum": 1, "i": 5}]))
-print(compose2.run_sequence([{"sum": 1, "i": {"val": 1}, "b": 1}, {"sum": 2, "i": {"val": 2}, "b": 0}, {"sum": 1, "i": {"val": 3}, "b": 1}, {"sum": 2, "i": {"val": 4}, "b": 0}, {"sum": 1, "i": {"val": 5}, "b": 1}]))
+print("Additioner:", additioner.run_sequence([{"sum": 1}, {"sum": 2}, {"sum": 1}, {"sum": 2}, {"sum": 1}]))
+print("Sampler:", sampler.run_sequence([{"i": {"val": 1}, "b": 1}, {"i": {"val": 2}, "b": 0}, {"i": {"val": 3}, "b": 1}, {"i": {"val": 4}, "b": 0}, {"i": {"val": 5}, "b": 1}]))
+print("pre:", pre.run_sequence([{"i": 1}, {"i": 2}, {"i": 3}, {"i": 4}, {"i": 5}]))
+print("additioner | pre:", compose1.run_sequence([{"sum": 1, "i": 1}, {"sum": 2, "i": 2}, {"sum": 1, "i": 3}, {"sum": 2, "i": 4}, {"sum": 1, "i": 5}]))
+print("additioner | sampler:", compose2.run_sequence([{"sum": 1, "i": {"val": 1}, "b": 1}, {"sum": 2, "i": {"val": 2}, "b": 0}, {"sum": 1, "i": {"val": 3}, "b": 1}, {"sum": 2, "i": {"val": 4}, "b": 0}, {"sum": 1, "i": {"val": 5}, "b": 1}]))
 
 async_additioner = additioner.asynchronise("c1")
-print(async_additioner.run_sequence([{"sum": 1, "c1": 1}, {"sum": 2, "c1": 0}, {"sum": 1, "c1": 1}, {"sum": 2, "c1": 0}, {"sum": 1, "c1": 1}]))
+print("Async additioner:", async_additioner.run_sequence([{"sum": 1, "c1": 1}, {"sum": 2, "c1": 0}, {"sum": 1, "c1": 1}, {"sum": 2, "c1": 0}, {"sum": 1, "c1": 1}]))
 
 async_pre = pre.asynchronise("c2")
-print(async_pre.run_sequence([{"i": 1, "c2": 1}, {"i": 2, "c2": 0}, {"i": 3, "c2": 1}, {"i": 4, "c2": 0}, {"i": 5, "c2": 1}]))
+print("Async pre:", async_pre.run_sequence([{"i": 1, "c2": 1}, {"i": 2, "c2": 0}, {"i": 3, "c2": 1}, {"i": 4, "c2": 0}, {"i": 5, "c2": 1}]))
 
 compose_async = async_additioner.compose(async_pre)
-print(compose_async.run_sequence([{"sum": 1, "i": 1, "c1": 1, "c2": 1}, 
+print("(async additioner) | (async pre):", compose_async.run_sequence([{"sum": 1, "i": 1, "c1": 1, "c2": 1}, 
                                   {"sum": 2, "i": 2, "c1": 0, "c2": 1}, 
                                   {"sum": 1, "i": 3, "c1": 1, "c2": 0}, 
                                   {"sum": 2, "i": 4, "c1": 0, "c2": 0}, 
                                   {"sum": 1, "i": 5, "c1": 1, "c2": 1}]))
 
+async_compose = compose1.asynchronise("c3")
+print("Async (additioner | pre):", async_compose.run_sequence([{"sum": 1, "i": 1, "c3": 1}, 
+                                  {"sum": 2, "i": 2, "c3": 1}, 
+                                  {"sum": 1, "i": 3, "c3": 0}, 
+                                  {"sum": 2, "i": 4, "c3": 0}, 
+                                  {"sum": 1, "i": 5, "c3": 1}]))
+
 scheduler = AsynchronousScheduler([additioner, pre], RandomOracle(2, 0.5))
-print(scheduler.run_sequence([{"sum": 1, "i": 1}, {"sum": 2, "i": 2}, {"sum": 1, "i": 3}, {"sum": 2, "i": 4}, {"sum": 1, "i": 5}]))
+print("Random asynchronous scheduler of (additioner | pre):", scheduler.run_sequence([{"sum": 1, "i": 1}, {"sum": 2, "i": 2}, {"sum": 1, "i": 3}, {"sum": 2, "i": 4}, {"sum": 1, "i": 5}]))
